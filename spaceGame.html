@@ -42,11 +42,23 @@
                 font-size:50px;
                 font-family:sans-serif;
             }
+            #clickMe {
+                color:black;
+                font-size: 50px;
+                font-family:sans-serif;
+                text-align:center;
+                margin:auto;
+                background-color:orange;
+                border-width:20px;
+                border-color:orange;
+            }
         </style>
     </head>
     <body>
         <p id="score"></p>
         <img id="spaceship" src="https://github.com/weszaron/spaceship/blob/main/spaceship.png?raw=true">
+        <br><br><button id="clickMe">Click to Start</button>
+        <everything id="everything"></everything>
         
         <script>
             "use strict";
@@ -83,210 +95,221 @@
             var score = 0;
             var gameLoop = setInterval(update, 25);
             var endLoop;
-            var gameOver = false;
+            var gameOver = "begin";
+            var clickMe = document.getElementById("clickMe");
+            var highScore = 0;
             function update(){
-                if(starsActive){
-                    if(starTags.length < 100){
-                        newStar = document.createElement("div");
-                        newStar.style.backgroundColor = "white";
-                        newStar.style.width = "3px";
-                        newStar.style.height = "3px";
-                        newStar.style.position = "fixed";
-                        document.getElementsByTagName("body")[0].appendChild(newStar);
-                        starTags.push(newStar);
-                    }
-                    if(stars.length < 100){
-                        stars.push([screen.width+10, Math.random() * screen.height, Math.floor(Math.random() * 3) + 1]);
-                        if(stars[stars.length-1] > 3){
-                            stars[stars.length-1][2] = 3;
+                if(gameOver == "play"){
+                    ship.style.display = "inline";
+                    clickMe.style.display = "none";
+                    if(starsActive){
+                        if(starTags.length < 100){
+                            newStar = document.createElement("div");
+                            newStar.style.backgroundColor = "white";
+                            newStar.style.width = "3px";
+                            newStar.style.height = "3px";
+                            newStar.style.position = "fixed";
+                            document.getElementsByTagName("everything")[0].appendChild(newStar);
+                            starTags.push(newStar);
                         }
-                    }
-                    for(var i = 0;i < stars.length;i++){
-                        star = stars[i];
-                        if(star[2] == 1){
-                            star[0] = star[0] - 10;
-                        }else if(star[2] == 2){
-                            star[0] = star[0] - 15;
-                        }else if(star[2] == 3){
-                            star[0] = star[0] - 20;
-                        }else{
-                            star[2] = 1;
-                            star[0] = -100;
+                        if(stars.length < 100){
+                            stars.push([screen.width+10, Math.random() * screen.height, Math.floor(Math.random() * 3) + 1]);
+                            if(stars[stars.length-1] > 3){
+                                stars[stars.length-1][2] = 3;
+                            }
                         }
-                        starTags[i].style.width = (star[2]) + "px";
-                        starTags[i].style.height = (star[2]) + "px";
-                        starTags[i].style.top = star[1] + "px";
-                        starTags[i].style.left = star[0] + "px";
-                        if(star[0] < -10){
+                        for(var i = 0;i < stars.length;i++){
+                            star = stars[i];
+                            if(star[2] == 1){
+                                star[0] = star[0] - 10;
+                            }else if(star[2] == 2){
+                                star[0] = star[0] - 15;
+                            }else if(star[2] == 3){
+                                star[0] = star[0] - 20;
+                            }else{
+                                star[2] = 1;
+                                star[0] = -100;
+                            }
+                            starTags[i].style.width = (star[2]) + "px";
+                            starTags[i].style.height = (star[2]) + "px";
+                            starTags[i].style.top = star[1] + "px";
+                            starTags[i].style.left = star[0] + "px";
+                            if(star[0] < -10){
+                                starTags[i].remove();
+                                starTags.splice(i, 1);
+                                stars.splice(i, 1);
+                            }
+                        }
+                    }else{
+                        stars = [];
+                        for(var i = 0;i < starTags.length;i++){
                             starTags[i].remove();
-                            starTags.splice(i, 1);
-                            stars.splice(i, 1);
                         }
+                        starTags = [];
                     }
-                }else{
-                    stars = [];
-                    for(var i = 0;i < starTags.length;i++){
-                        starTags[i].remove();
-                    }
-                    starTags = [];
-                }
-                
-                if(flameTags.length < 50){
-                    for(var i = 0;i < 2;i++){
-                    newFlame = document.createElement("div");
-                    newFlame.classList.add("fire");
-                    newFlame.style.backgroundColor = "rgb(255, " + (Math.random() * 200) + ", 0)";
-                    newFlame.style.top = (shipY + ((250/1095) * 599 / 2) - 10) + "px";
-                    newFlame.style.left = (shipX + 100) + "px";
-                    newFlame.style.transform = "rotate(" + (Math.random() * 45) + "deg)";
-                    document.getElementsByTagName("body")[0].append(newFlame);
-                    flameTags.push(newFlame);
-                    }
-                }
-                if(flames.length < 50){
-                    flameRot = (((Math.random() - 0.5) * 4) + (shipRot / 15));
-                    if(shipRot > 0){
-                        flameRot -= 3;
-                    }
-                    if(shipRot < 0){
-                        flameRot += 3;
-                    }
-                    flames.push([shipX + 100,(shipY + ((250/1095) * 599 / 2) - 10), flameRot, 1]);
-                    flames.push([shipX + 100,(shipY + ((250/1095) * 599 / 2) - 10), (((Math.random() - 0.5) * 4)+(shipRot / 15)), 1]);
-                    if(shipRot > 0){
-                        if(shipRot <= 5){
-                            flames[flames.length - 1][2] *= 0.333;
-                            flames[flames.length - 2][2] *= 0.333;
-                        }else if(shipRot <= 10){
-                            flames[flames.length - 1][2] *= 0.666;
-                            flames[flames.length - 2][2] *= 0.666;
-                        }
-                    }else if(shipRot < 0){
-                        if(shipRot >= -5){
-                            flames[flames.length - 1][2] *= 0.333;
-                            flames[flames.length - 2][2] *= 0.333;
-                        }else if(shipRot >= -10){
-                            flames[flames.length - 1][2] *= 0.666;
-                            flames[flames.length - 2][2] *= 0.666;
-                        }
-                    }
-                }
-                for(var i = 0;i < flames.length;i++){
-                    flames[i][0] = flames[i][0] - 10;
-                    flames[i][1] = flames[i][1] - flames[i][2];
                     
-                    flameTags[i].style.top = flames[i][1] + "px";
-                    flameTags[i].style.left = flames[i][0] + "px";
-                    if(flames[i][0] < -50){
-                        flameTags[i].remove();
-                        flameTags.splice(i,1);
-                        flames.splice(i,1);
-                    }
-                }
-
-                keyDirection = [0,0];
-                for(var i=0;i<keysPressed.length;i++){
-                    keyDirection[0] = (keysPressed[i] == 38 || keysPressed == 87);
-                    keyDirection[1] = (keysPressed[i] == 40 || keysPressed == 83);
-                }
-                switch(keyDirection[0] - keyDirection[1]){
-                    case 0:
-                        direction = "NONE";
-                        break;
-                    case 1:
-                        direction = "UP";
-                        break;
-                    case -1:
-                        direction = "DOWN";
-                        break;
-                    default:
-                        direction = direction;
-                }
-                ship.style.transform = "rotate(0deg)";
-                if(direction == "UP"){
-                    if(shipY > 0){
-                        if(shipRot > -15){
-                            shipRot -= 3;
-                        }else{
-                            shipRot = -15;
+                    if(flameTags.length < 50){
+                        for(var i = 0;i < 2;i++){
+                        newFlame = document.createElement("div");
+                        newFlame.classList.add("fire");
+                        newFlame.style.backgroundColor = "rgb(255, " + (Math.random() * 200) + ", 0)";
+                        newFlame.style.top = (shipY + ((250/1095) * 599 / 2) - 10) + "px";
+                        newFlame.style.left = (shipX + 100) + "px";
+                        newFlame.style.transform = "rotate(" + (Math.random() * 45) + "deg)";
+                        document.getElementsByTagName("everything")[0].append(newFlame);
+                        flameTags.push(newFlame);
                         }
-                        shipY -= 30;
-                    }else{
+                    }
+                    if(flames.length < 50){
+                        flameRot = (((Math.random() - 0.5) * 4) + (shipRot / 15));
+                        if(shipRot > 0){
+                            flameRot -= 3;
+                        }
                         if(shipRot < 0){
-                            shipRot += 3;
-                        }else{
-                            shipRot = 0;
+                            flameRot += 3;
+                        }
+                        flames.push([shipX + 100,(shipY + ((250/1095) * 599 / 2) - 10), flameRot, 1]);
+                        flames.push([shipX + 100,(shipY + ((250/1095) * 599 / 2) - 10), (((Math.random() - 0.5) * 4)+(shipRot / 15)), 1]);
+                        if(shipRot > 0){
+                            if(shipRot <= 5){
+                                flames[flames.length - 1][2] *= 0.333;
+                                flames[flames.length - 2][2] *= 0.333;
+                            }else if(shipRot <= 10){
+                                flames[flames.length - 1][2] *= 0.666;
+                                flames[flames.length - 2][2] *= 0.666;
+                            }
+                        }else if(shipRot < 0){
+                            if(shipRot >= -5){
+                                flames[flames.length - 1][2] *= 0.333;
+                                flames[flames.length - 2][2] *= 0.333;
+                            }else if(shipRot >= -10){
+                                flames[flames.length - 1][2] *= 0.666;
+                                flames[flames.length - 2][2] *= 0.666;
+                            }
                         }
                     }
-                }
-                if(direction == "DOWN"){
-                    if(shipY < (screen.height - ((250/1095) * 599) * 1.5)){
-                        if(shipRot < 15){
-                            shipRot += 3;
-                        }else{
-                            shipRot = 15;
+                    for(var i = 0;i < flames.length;i++){
+                        flames[i][0] = flames[i][0] - 10;
+                        flames[i][1] = flames[i][1] - flames[i][2];
+                        
+                        flameTags[i].style.top = flames[i][1] + "px";
+                        flameTags[i].style.left = flames[i][0] + "px";
+                        if(flames[i][0] < -50){
+                            flameTags[i].remove();
+                            flameTags.splice(i,1);
+                            flames.splice(i,1);
                         }
-                        shipY += 30;
-                    }else{
+                    }
+    
+                    keyDirection = [0,0];
+                    for(var i=0;i<keysPressed.length;i++){
+                        keyDirection[0] = (keysPressed[i] == 38 || keysPressed == 87);
+                        keyDirection[1] = (keysPressed[i] == 40 || keysPressed == 83);
+                    }
+                    switch(keyDirection[0] - keyDirection[1]){
+                        case 0:
+                            direction = "NONE";
+                            break;
+                        case 1:
+                            direction = "UP";
+                            break;
+                        case -1:
+                            direction = "DOWN";
+                            break;
+                        default:
+                            direction = direction;
+                    }
+                    ship.style.transform = "rotate(0deg)";
+                    if(direction == "UP"){
+                        if(shipY > 0){
+                            if(shipRot > -15){
+                                shipRot -= 3;
+                            }else{
+                                shipRot = -15;
+                            }
+                            shipY -= 30;
+                        }else{
+                            if(shipRot < 0){
+                                shipRot += 3;
+                            }else{
+                                shipRot = 0;
+                            }
+                        }
+                    }
+                    if(direction == "DOWN"){
+                        if(shipY < (screen.height - ((250/1095) * 599) * 1.5)){
+                            if(shipRot < 15){
+                                shipRot += 3;
+                            }else{
+                                shipRot = 15;
+                            }
+                            shipY += 30;
+                        }else{
+                            if(shipRot > 0){
+                                shipRot -= 3;
+                            }else{
+                                shipRot = 0;
+                            }
+                        }
+                    }
+                    if(direction == "NONE"){
                         if(shipRot > 0){
                             shipRot -= 3;
+                        }else if(shipRot < 0){
+                            shipRot += 3;
                         }else{
                             shipRot = 0;
                         }
                     }
-                }
-                if(direction == "NONE"){
-                    if(shipRot > 0){
-                        shipRot -= 3;
-                    }else if(shipRot < 0){
-                        shipRot += 3;
-                    }else{
-                        shipRot = 0;
+                    ship.style.top = shipY + "px";
+                    ship.style.transform = "rotate(" + shipRot * 4 + "deg)";
+                    
+                    countDown -= Date.now() - prevDate;
+                    if(countDown <= 0){
+                        newObstacle = document.createElement("img");
+                        newObstacle.classList.add("obstacle");
+                        newObstacle.src = obstacleImgs[0];
+                        document.getElementsByTagName("everything")[0].appendChild(newObstacle);
+                        obstacleTags.push(newObstacle);
+                        obstacles.push([screen.width + 500, Math.random()*(screen.height - 200), Math.floor(Math.random()*obstacleImgs.length), Math.random() * 360]);
+                        obstacleTags[obstacleTags.length - 1].src = obstacleImgs[obstacles[obstacles.length - 1][2]];
+                        obstacleTags[obstacleTags.length - 1].style.transform = "rotate(" + obstacles[obstacles.length - 1][3] + "deg)";
+                        countDown = topCountdown;
+                        topCountdown = (topCountdown < 500 ? 500 : topCountdown - 50);
                     }
-                }
-                ship.style.top = shipY + "px";
-                ship.style.transform = "rotate(" + shipRot * 4 + "deg)";
-                
-                countDown -= Date.now() - prevDate;
-                if(countDown <= 0){
-                    newObstacle = document.createElement("img");
-                    newObstacle.classList.add("obstacle");
-                    newObstacle.src = obstacleImgs[0];
-                    document.getElementsByTagName("body")[0].appendChild(newObstacle);
-                    obstacleTags.push(newObstacle);
-                    obstacles.push([screen.width + 500, Math.random()*(screen.height - 200), Math.floor(Math.random()*obstacleImgs.length), Math.random() * 360]);
-                    obstacleTags[obstacleTags.length - 1].src = obstacleImgs[obstacles[obstacles.length - 1][2]];
-                    obstacleTags[obstacleTags.length - 1].style.transform = "rotate(" + obstacles[obstacles.length - 1][3] + "deg)";
-                    countDown = topCountdown;
-                    topCountdown = (topCountdown < 500 ? 500 : topCountdown - 50);
-                }
-                prevDate = Date.now();
-                for(var i = 0;i<obstacles.length;i++){
-                    obstacles[i][0] -= Math.floor(obstacleSpeed);
-                    obstacleTags[i].style.top = obstacles[i][1] + "px";
-                    obstacleTags[i].style.left = obstacles[i][0] + "px";
-                    if(obstacles[i][0] < -500){
-                        obstacleTags[i].remove();
-                        obstacleTags.splice(i, 1);
-                        obstacles.splice(i, 1);
-                        score += 100;
-                        obstacleSpeed = (obstacleSpeed <= 50 ? obstacleSpeed + 0.5 : 50);
+                    prevDate = Date.now();
+                    for(var i = 0;i<obstacles.length;i++){
+                        obstacles[i][0] -= Math.floor(obstacleSpeed);
+                        obstacleTags[i].style.top = obstacles[i][1] + "px";
+                        obstacleTags[i].style.left = obstacles[i][0] + "px";
+                        if(obstacles[i][0] < -500){
+                            obstacleTags[i].remove();
+                            obstacleTags.splice(i, 1);
+                            obstacles.splice(i, 1);
+                            score += 100;
+                            obstacleSpeed = (obstacleSpeed <= 50 ? obstacleSpeed + 0.5 : 50);
+                        }
                     }
-                }
-
-                for(var i = 0;i < obstacles.length;i++){
-                    if(obstacles[i][0] > 0 && obstacles[i][0] < 200 && (obstacles[i][1] + 100) > shipY && (obstacles[i][1] + 100) < (shipY + 200)){
-                        obstacleTags[i].remove();
-                        obstacleTags.splice(i, 1);
-                        obstacles.splice(i, 1);
-                        countDown = 2000;
-                        gameOver = true;
-                        endLoop = setInterval(deathAnim, 25);
-                        clearInterval(gameLoop);
+    
+                    for(var i = 0;i < obstacles.length;i++){
+                        if(obstacles[i][0] > 0 && obstacles[i][0] < 200 && (obstacles[i][1] + 100) > shipY && (obstacles[i][1] + 100) < (shipY + 200)){
+                            obstacleTags[i].remove();
+                            obstacleTags.splice(i, 1);
+                            obstacles.splice(i, 1);
+                            countDown = 2000;
+                            gameOver = "end";
+                            endLoop = setInterval(deathAnim, 25);
+                            clearInterval(gameLoop);
+                        }
                     }
+                    score += 1 + Math.floor((2000 - topCountdown) / 500);
+                    document.getElementById("score").innerHTML = "<mark>" + score + "</mark>";
+                }else if(gameOver == "begin"){
+                    ship.style.display = "none";
+                    clickMe.style.display = "block";
+                    prevDate = Date.now();
+                    document.getElementById("score").innerHTML = "<mark>" + highScore + "</mark><br>Highest Score";
                 }
-                score += 1 + Math.floor((2000 - topCountdown) / 500);
-                document.getElementById("score").innerHTML = "<mark>" + score + "</mark>";
             };
 
 
@@ -309,7 +332,7 @@
                         newStar.style.width = "3px";
                         newStar.style.height = "3px";
                         newStar.style.position = "fixed";
-                        document.getElementsByTagName("body")[0].appendChild(newStar);
+                        document.getElementsByTagName("everything")[0].appendChild(newStar);
                         starTags.push(newStar);
                     }
                     if(stars.length < 100){
@@ -376,7 +399,7 @@
                             newFlame.style.top = (shipY + ((250/1095) * 599 / 2) - 10) + "px";
                             newFlame.style.left = (shipX + 100) + "px";
                             newFlame.style.transform = "rotate(" + (Math.random() * 45) + "deg)";
-                            document.getElementsByTagName("body")[0].append(newFlame);
+                            document.getElementsByTagName("everything")[0].append(newFlame);
                             flameTags.push(newFlame);
                         }
                     } while (flameTags.length < flames.length);
@@ -410,6 +433,26 @@
                             ship.style.display = "none";
                         }
                         if(countDown < -10000){
+                            gameOver = "begin";
+                            document.getElementById("everything").innerHTML = " ";
+                            shipY = 30;
+                            shipRot = 0;
+                            direction = "NONE";
+                            stars = [];
+                            starTags = [];
+                            starSpeed = 1;
+                            flames = [];
+                            flameTags = [];
+                            keysPressed = [];
+                            keyDirection = [];
+                            obstacles = [];
+                            obstacleTags = [];
+                            topCountdown = 2000;
+                            countDown = 2000;
+                            obstacleSpeed = 20;
+                            gameLoop = setInterval(update, 25);
+                            highScore = (score > highScore ? score : highScore);
+                            score = 0;
                             clearInterval(endLoop);
                         }
                     }
@@ -426,14 +469,41 @@
                     direction = "DOWN";
                 }else if(e.keyCode == 88){
                     starsActive = !starsActive;
-                }else if(e.keyCode == 82 && gameOver){
-                    location.reload();
+                }else if(e.keyCode == 82 && gameOver == "end"){
+                    gameOver = "begin";
+                    document.getElementById("everything").innerHTML = " ";
+                    shipY = 30;
+                    shipRot = 0;
+                    direction = "NONE";
+                    stars = [];
+                    starTags = [];
+                    starSpeed = 1;
+                    flames = [];
+                    flameTags = [];
+                    keysPressed = [];
+                    keyDirection = [];
+                    obstacles = [];
+                    obstacleTags = [];
+                    topCountdown = 2000;
+                    countDown = 2000;
+                    obstacleSpeed = 20;
+                    gameLoop = setInterval(update, 25);
+                    highScore = (score > highScore ? score : highScore);
+                    score = 0;
+                    clearInterval(endLoop);
                 }
                 keysPressed.push(e.keyCode);
             };
             document.onkeyup = function(e){
                 keysPressed = keysPressed.filter((code) => code != e.keyCode);
             }
+
+            clickMe.addEventListener("click", startGame);
+            function startGame(){
+                if(gameOver == "begin"){
+                    gameOver = "play";
+                }
+            };
         </script>
     </body>
 </html>
