@@ -4,6 +4,7 @@
         <!-- Written by Cookie Code -->
         <meta charset="utf-8">
         <title>Spaceship!</title>
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
         <style>
             body {
                 background-color:black;
@@ -45,7 +46,7 @@
     </head>
     <body>
         <p id="score"></p>
-        <img id="spaceship" src="spaceship.png">
+        <img id="spaceship" src="https://github.com/weszaron/spaceship/blob/main/spaceship.png?raw=true">
         
         <script>
             "use strict";
@@ -72,7 +73,7 @@
 
             var obstacles = [];
             var obstacleTags = [];
-            var obstacleImgs = ["satellite1.png", "ufo1.png", "satellite2.png", "rock1.png"];
+            var obstacleImgs = ["https://github.com/weszaron/spaceship/blob/main/satellite1.png?raw=true", "https://github.com/weszaron/spaceship/blob/main/ufo1.png?raw=true", "https://github.com/weszaron/spaceship/blob/main/satellite2.png?raw=true", "https://github.com/weszaron/spaceship/blob/main/rock1.png?raw=true"];
             var topCountdown = 2000;
             var countDown = 2000;
             var prevDate = Date.now();
@@ -253,7 +254,7 @@
                     newObstacle.src = obstacleImgs[0];
                     document.getElementsByTagName("body")[0].appendChild(newObstacle);
                     obstacleTags.push(newObstacle);
-                    obstacles.push([screen.width + 50, Math.random()*(screen.height - 200), Math.floor(Math.random()*obstacleImgs.length), Math.random() * 360]);
+                    obstacles.push([screen.width + 500, Math.random()*(screen.height - 200), Math.floor(Math.random()*obstacleImgs.length), Math.random() * 360]);
                     obstacleTags[obstacleTags.length - 1].src = obstacleImgs[obstacles[obstacles.length - 1][2]];
                     obstacleTags[obstacleTags.length - 1].style.transform = "rotate(" + obstacles[obstacles.length - 1][3] + "deg)";
                     countDown = topCountdown;
@@ -399,7 +400,7 @@
                     if(countDown >= -8000){
                         shipRot = shipRot + Math.round((Math.random() - 0.5) * 2) * 2;
                     }else{
-                        ship.src = "spaceship2.png";
+                        ship.src = "https://github.com/weszaron/spaceship/blob/main/spaceship2.png?raw=true";
                         flames = [];
                         for(var i = 0;i < flameTags.length;i++){
                             flameTags[i].remove();
