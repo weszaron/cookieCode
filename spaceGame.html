@@ -29,6 +29,15 @@
                 color:white;
                 
             }
+            a {
+                margin:auto;
+                text-align:center;
+                font-size:20px;
+                color:light-blue;
+            }
+            a:visited {
+                color:light-blue;
+            }
             .obstacle {
                 position:fixed;
                 top:0px;
@@ -58,6 +67,8 @@
         <p id="score"></p>
         <img id="spaceship" src="https://github.com/weszaron/spaceship/blob/main/spaceship.png?raw=true">
         <br><br><button id="clickMe">Click to Start</button>
+        <br><a href="https://sites.google.com/view/cookiecode" id="homelink">Home</a>
+
         <everything id="everything"></everything>
         
         <script>
@@ -100,8 +111,10 @@
             var highScore = 0;
             function update(){
                 if(gameOver == "play"){
+                    ship.src="https://github.com/weszaron/spaceship/blob/main/spaceship.png?raw=true";
                     ship.style.display = "inline";
                     clickMe.style.display = "none";
+                    document.getElementById("homelink").style.display = "none";
                     if(starsActive){
                         if(starTags.length < 100){
                             newStar = document.createElement("div");
@@ -308,7 +321,9 @@
                     ship.style.display = "none";
                     clickMe.style.display = "block";
                     prevDate = Date.now();
+                    document.getElementById("homelink").style.display = "block";
                     document.getElementById("score").innerHTML = "<mark>" + highScore + "</mark><br>Highest Score";
+                    ship.src="https://github.com/weszaron/spaceship/blob/main/spaceship.png?raw=true";
                 }
             };
 
