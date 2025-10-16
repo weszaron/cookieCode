@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Cookie Code</title>
+        <style>
+            .nav {
+                position:fixed;
+                margin:none;
+                padding:none;
+                top:0px;
+                left:0px;
+            }
+            #navBar {
+                width:100%;
+            }
+            #cornerImg {
+                width:350px;
+                height:280px;
+                top:-140px;
+                left:-175px;
+                transform-origin:center;
+            }
+            #pageTitle {
+                font-family:sans-serif;
+                color:rgb(242 121 46);
+                font-size:50px;
+                top:-25px;
+                left:138px;
+                cursor:default;
+            }
+            .navLink {
+                color:rgb(242 121 46);
+                font-size:30px;
+                top:15px;
+                background:none;
+                border-width:3px;
+                cursor:pointer;
+            }
+            #homeLink {
+                left:67%;
+            }
+            #gameLink {
+                left:76.6%;
+            }
+            #aboutLink {
+                left:88.2%;
+            }
+            #content {
+                padding-left:10%;
+                padding-right:10%;
+                display:block;
+                overflow:auto;
+            }
+            h1 {
+                font-size:70px;
+                font-family:sans-serif;
+                text-align:center;
+            }
+            h2 {
+                font-size:30px;
+                font-family:sans-serif;
+                color:darkred;
+            }
+            body {
+                background-color:whitesmoke;
+            }
+            a {
+                font-family:sans-serif;
+                font-size:25px;
+            }
+            p {
+                font-family:sans-serif;
+                font-size:20px;
+            }
+            td img {
+                width:100%;
+            }
+            #searchField {
+                font-size:20px;
+                float:right;
+            }
+            #searchButton {
+                float:right;
+                height:30px;
+                width:30px;
+                margin-right:20px;
+                margin-left:5px;
+                border:none;
+                cursor:pointer;
+                border-radius:4px;
+                background-color:whitesmoke;
+            }
+            #searchButton:hover {
+                background:rgb(225 225 225);
+            }
+            #searchButton img {
+                margin:auto;
+                height:20px;
+                display:block;
+            }
+            #logoImg {
+                width:80px;
+            }
+        </style>
+    </head>
+    <body>
+        <navigation>
+            <img class="nav" id="navBar" src="navBar.png">
+            <h1 class="nav" id="pageTitle" >Cookie Code</h1>
+            <img class="nav" id="cornerImg" src="roundGear.png">
+            <img class="nav" id="logoImg" src="cookieCodeLogo.png">
+            <button class="nav navLink" id="homeLink">Home</button>
+            <button class="nav navLink" id="gameLink">Games</button>
+            <button class="nav navLink" id="aboutLink">About</button>
+        </navigation>
+        
+        <pageContent id="homeContent">
+            <br><br><br><br><br>
+            <h1 style="margin-bottom:10px">Welcome to Cookie Code</h1>
+            <h2 style="text-align:center">A site with embedded HTML games for you to play</h2>
+            <hr>
+            <h2>Most popular Games</h2>
+
+            <table>
+                <tr>
+                    <td><img src="spaceThumb.png"></td>
+                    <td colspan="2"><a href="https://sites.google.com/view/cookiecode/space-game">Spaceship Pilot</a>
+                    <p>Fly through the stars, dodging space junk and other things you should probably avoid. Playable in browser, and made for chromebooks.</p></td>
+                </tr>
+            </table>
+            <!--
+            <table>
+                <tr>
+                    <td colspan="2"><a href="https://sites.google.com/view/cookiecode/space-game">Spaceship Pilot</a>
+                    <p>Fly through the stars, dodging space junk and other things you should probably avoid. Playable in browser, and made for chromebooks.</p></td>
+                    <td><img src="spaceThumb.png"></td>
+                </tr>
+            </table>
+            -->
+            
+        </pageContent>
+
+        <pageContent id="gameContent">
+            <br><br><br><br><br>
+            <h1>Game List</h1>
+            <hr>
+            <button id="searchButton"><img src="searchIcon.png"></button>
+            <input type="text" id="searchField" size="25" maxLength="64"/>
+            <hr style="margin-top:45px">
+            <table>
+                <tr>
+                    <td><img src="spaceThumb.png"></td>
+                    <td colspan="2"><a href="https://sites.google.com/view/cookiecode/space-game">Spaceship Pilot</a>
+                    <p>Fly through the stars, dodging space junk and other things you should probably avoid. Playable in browser, and made for chromebooks.</p></td>
+                </tr>
+            </table>
+        </pageContent>
+
+        <pageContent id="aboutContent">
+            <br><br><br><br><br>
+            <h1>About Cookie Code</h1>
+            <hr>
+            <pageContent id="content">
+                <h2>This Site</h2>
+                <p id="aboutDate">The Cookie Code website was written in HTML and embedded directly into a Google Site. All of the games are made with HTML and JavaScript. This site was first published 0 days, 0 hours, 0 minutes, and 0 seconds ago. </p>
+                <img src="waffleHead.png" style="float:left">
+                <h2>My Bio</h2>
+                <p>Just a guy, doing some programming for fun. (truly an excellent bio)</p>
+                <h2>Credits</h2>
+                <p>All code by me. Almost all of the art is by me, except for the UFO from <em>Spaceship Pilot</em> (Thanks!). </p>
+            </pageContent>
+        </pageContent>
+        
+        <script>
+            "use strict";
+            var page = "HOME";
+            var homeContent = document.getElementById("homeContent");
+            var gameContent = document.getElementById("gameContent");
+            var aboutContent = document.getElementById("aboutContent");
+            var searchQ = "";
+            var gameTables = [];
+            var dateUpdater = setInterval(updateDate, 50);
+            var cornerRotate = 0;
+            gameContent.style.display = "none";
+            aboutContent.style.display = "none";
+            document.getElementById("homeLink").addEventListener("click", function(){
+                if(page != "HOME"){
+                    updateContent("HOME");
+                }
+            });
+
+            document.getElementById("gameLink").addEventListener("click", function(){
+                if(page != "GAME"){
+                    updateContent("GAME");
+                }
+            });
+
+            document.getElementById("aboutLink").addEventListener("click", function(){
+                if(page != "ABOUT"){
+                    updateContent("ABOUT");
+                }
+            });
+
+            document.getElementById("searchButton").addEventListener("click", function(){
+                searchQ = document.getElementById("searchField").value;
+                gameTables = document.getElementsByTagName("table");
+                for(var i = 0;i<gameTables.length;i++){
+                    if(gameTables[i].textContent.toLowerCase().includes(searchQ.toLowerCase())){
+                        gameTables[i].style.display = "block";
+                    }else{
+                        gameTables[i].style.display = "none";
+                    }
+                }
+            });
+
+            function updateContent(state){
+                if(state == "HOME"){
+                    page = "HOME";
+                    homeContent.style.display = "block";
+                    gameContent.style.display = "none";
+                    aboutContent.style.display = "none";
+                    for(var i = 0;i < document.getElementsByTagName("table").length;i++){
+                        document.getElementsByTagName("table")[i].style.display = "block";
+                    }
+                }else if(state == "GAME"){
+                    page = "GAME";
+                    homeContent.style.display = "none";
+                    gameContent.style.display = "block";
+                    aboutContent.style.display = "none";
+                    gameTables = document.getElementsByTagName("table");
+                    /*
+                    for(var i = 0;i<gameTables.length;i++){
+                        if(gameTables[i].textContent.toLowerCase().includes(searchQ.toLowerCase())){
+                            gameTables[i].style.display = "block";
+                        }else{
+                            gameTables[i].style.display = "none";
+                        }
+                    }*/
+                }else if(state == "ABOUT"){
+                    page = "ABOUT";
+                    homeContent.style.display = "none";
+                    gameContent.style.display = "none";
+                    aboutContent.style.display = "block";
+                    for(var i = 0;i < document.getElementsByTagName("table").length;i++){
+                        document.getElementsByTagName("table")[i].style.display = "block";
+                    }
+                }else{
+                    alert("An error has occured. Please refresh. State: " + state);
+                }
+                window.scrollTo(0, 0);
+            };
+
+            function updateDate(){
+                var launch = 1760632099018;
+                var now = Date.now();
+                var since = now - launch;
+                var dateElement = document.getElementById("aboutDate");
+                var days = Math.floor(since / 86400000);
+                since -= days * 86400000;
+                var hours = Math.floor(since / 3600000);
+                since -= hours * 3600000;
+                var minutes = Math.floor(since / 60000);
+                since -= minutes * 60000;
+                var seconds = Math.round(since / 1000);
+                
+                dateElement.textContent = "The Cookie Code website was written in HTML and embedded directly into a Google Site. All of the games are made with HTML and JavaScript. This site was first published " + days + " days, " + hours + " hour" + (hours == 1 ? "" : "s") + ", " + minutes + " minute" + (minutes == 1 ? "" : "s") + ", and " + seconds + " second" + (seconds == 1 ? "" : "s") + " ago.";
+                document.getElementById("cornerImg").style.transform = "rotate(" + cornerRotate + "deg)";
+                cornerRotate += 1;
+            }
+        </script>
+    </body>
+</html>
