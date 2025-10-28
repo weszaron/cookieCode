@@ -84,37 +84,46 @@
                 image-rendering:pixelated;
                 width:100px;
             }
+            #homeLink {
+                position:fixed;
+                top:340px;
+                font-size:20px;
+                font-family:serif;
+                text-align:center;
+                left:655px;
+            }
         </style>
     </head>
     <body>
         <clouds></clouds>
-        <img id="knight" src="knight_idle.png" draggable="false">
+        <img id="knight" src="https://github.com/weszaron/cookieCode/blob/main/knight_idle.png?raw=true" draggable="false">
         <blocks>
             
         </blocks>
         <button id="playButton"><span class="rotateText">Play</span></button>
-        <img src="knight_end.png" id="endImg" draggable="false">
+        <img src="https://github.com/weszaron/cookieCode/blob/main/knight_end.png?raw=true" id="endImg" draggable="false">
         <button id="homeButton"><span class="rotateText">Home</span></button>
         <h1 id="timePlayed">00:00:00.000</h1>
+        <a href="https://sites.google.com/view/cookiecode" id="homeLink">Home</a>
         <script>
             //0
-            var blank = "BlankTile.png";
+            var blank = "https://github.com/weszaron/cookieCode/blob/main/knight_blankTile.png?raw=true";
             //1
-            var grass = "GrassSquare.png";
+            var grass = "https://github.com/weszaron/cookieCode/blob/main/knight_grassSquare.png?raw=true";
             //2
-            var grassPlat = "grassPlatform.png";
+            var grassPlat = "https://github.com/weszaron/cookieCode/blob/main/knight_grassPlatform.png?raw=true";
             //3
-            var dirt = "dirtSquare.png";
+            var dirt = "https://github.com/weszaron/cookieCode/blob/main/knight_dirt.png?raw=true";
             //4
-            var grassLeft = "GrassLeft.png"; /*On the left of platform*/
+            var grassLeft = "https://github.com/weszaron/cookieCode/blob/main/knight_grassLeft.png?raw=true"; /*On the left of platform*/
             //5
-            var grassRight = "GrassRight.png"; /*On the right of platform*/
+            var grassRight = "https://github.com/weszaron/cookieCode/blob/main/knight_grassRight.png?raw=true"; /*On the right of platform*/
             //6
-            var keyImg = "key.png";
+            var keyImg = "https://github.com/weszaron/cookieCode/blob/main/knight_key.png?raw=true";
             //7
-            var doorImg = "door.png";
+            var doorImg = "https://github.com/weszaron/cookieCode/blob/main/knight_door.png?raw=true";
             //8
-            var flagImg = "flag.png";
+            var flagImg = "https://github.com/weszaron/cookieCode/blob/main/knight_flag.png?raw=true";
 
             var currentMap;
             var grid = false;
@@ -123,7 +132,7 @@
 
             var clouds = [];
             var cloudTags = [];
-            var cloudImg = "knight_cloud.png";
+            var cloudImg = "https://github.com/weszaron/cookieCode/blob/main/knight_cloud.png?raw=true";
 
             var knightX = 820;
             var knightY = 0;
@@ -145,12 +154,12 @@
 
             var keysPressed = [];
 
-            var knightJump = "knight_jump.png";
-            var knightJumpL = "knight_jumpL.png";
-            var knight_idle = "knight_idle.png";
-            var knight_idleL = "knight_idleL.png";
-            var knight_walk1 = "knight_walk1.png";
-            var knight_walk1L = "knight_walk1L.png";
+            var knightJump = "https://github.com/weszaron/cookieCode/blob/main/knight_jump.png?raw=true";
+            var knightJumpL = "https://github.com/weszaron/cookieCode/blob/main/knight_jumpL.png?raw=true";
+            var knight_idle = "https://github.com/weszaron/cookieCode/blob/main/knight_idle.png?raw=true";
+            var knight_idleL = "https://github.com/weszaron/cookieCode/blob/main/knight_idleL.png?raw=true";
+            var knight_walk1 = "https://github.com/weszaron/cookieCode/blob/main/knight_walk1.png?raw=true";
+            var knight_walk1L = "https://github.com/weszaron/cookieCode/blob/main/knight_walk1L.png?raw=true";
             
             var knight = document.getElementById("knight");
             var prevFrame = knight_idle;
@@ -166,6 +175,7 @@
             var homeButton = document.getElementById("homeButton");
             var playButton = document.getElementById("playButton");
             var playTime = document.getElementById("timePlayed");
+            var homeLink = document.getElementById("homeLink");
             
             var map1 = [
                 [1,1,1,1,1,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,1,1,1,1,5,0,0,0,2,0,6],
@@ -258,6 +268,7 @@
                     endImg.style.display = "none";
                     homeButton.style.display = "none";
                     playTime.style.display = "none";
+                    homeLink.style.display = "none";
                     if(keysPressed.includes(39) && keysPressed.includes(37)){
                         xVelocity = 0;
                         if(prevFrame == knight_walk1){
@@ -371,7 +382,6 @@
                     }
                     if(!reduceLag){
                         for(var i = 0;i < clouds.length;i++){
-                            //alert(clouds[i][2]);
                             cloudTags[i].style.top = clouds[i][0] - (knightY / (6 - clouds[i][2])) + "px";
                             cloudTags[i].style.left = clouds[i][1] - (knightX / (6 - clouds[i][2])) + "px";
                             cloudTags[i].style.width = (clouds[i][2] * 100) + "px";
@@ -387,6 +397,7 @@
                     knight.style.top = "404px";
                     homeButton.style.display = "none";
                     playTime.style.display = "none";
+                    homeLink.style.display = "block";
                     if(animCount >= 10){
                         if(prevFrame == knight_walk1){
                             knight.src = knight_idle;
@@ -434,6 +445,7 @@
                     endImg.style.display = "block";
                     knight.style.display = "none";
                     playTime.style.display = "block";
+                    homeLink.style.display = "none";
                     if(blocks.length < 200){
                         blocks.push("a");
                         blockTags.push(document.createElement("div"));
@@ -497,6 +509,7 @@
                         if( ((knightRight > boxLeft) && (knightLeft < boxRight)) && ((knightDown > boxUp) && (knightUp < boxDown)) ){
                             if(blocks[i][2] == 8){
                                 gameState = "END";
+                                document.getElementsByTagName("clouds")[0].innerHTML = " ";
                                 finishTime = Date.now() - startTime;
                                 var hours = Math.floor(finishTime / 3600000);
                                 finishTime -= hours * 3600000;
@@ -632,6 +645,10 @@
                 playButton.style.display = "none";
                 blocksScreen.innerHTML = " ";
                 setMap(map1);
+                clouds = [];
+                cloudTags = [];
+                document.getElementsByTagName("clouds")[0].innerHTML = " ";
+                //alert(clouds.length);
                 for(var c = 0;c < 200;c++){
                     var newCloud = document.createElement("img");
                     cloudTags.push(newCloud);
