@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Written by Cookie Code -->
+        <meta charset="utf-8">
+        <title>Platformer</title>
+        <style>
+            body {
+                background-color:lightskyblue;
+            }
+            .block {
+                position:fixed;
+                height:100px;
+                image-rendering:pixelated;
+                display:block;
+            }
+            #knight {
+                position:fixed;
+                height:100px;
+                image-rendering:pixelated;
+                display:block;
+                z-index: 998;
+            }
+            .invis {
+                display:none;
+            }
+            .door {
+                z-index:1000;
+            }
+            #playButton {
+                background:orange;
+                font-family:sans-serif;
+                border-width:10px;
+                margin:auto;
+                width:100px;
+                height:200px;
+                left:633px;
+                top:175px;
+                position:fixed;
+                font-size:30px;
+                border-color:orange;
+                transform:rotate(90deg);
+                cursor:pointer;
+            }
+            #homeButton {
+                background:orange;
+                font-family:sans-serif;
+                border-width:10px;
+                margin:auto;
+                width:100px;
+                height:200px;
+                left:633px;
+                top:-15px;
+                position:fixed;
+                font-size:30px;
+                border-color:orange;
+                transform:rotate(90deg);
+                cursor:pointer;
+            }
+            .rotateText {
+                transform:rotate(270deg);
+                display:inline-block;
+            }
+            #endImg {
+                width:100%;
+                position:fixed;
+                top:-100px;
+                left:0;
+            }
+            .confetti {
+                position:fixed;
+                width:20px;
+                height:20px;
+            }
+            #timePlayed {
+                font-family:sans-serif;
+                font-size:20px;
+                text-align:center;
+                position:fixed;
+                top:550px;
+            }
+            .cloud {
+                position:fixed;
+                image-rendering:pixelated;
+                width:100px;
+            }
+        </style>
+    </head>
+    <body>
+        <clouds></clouds>
+        <img id="knight" src="knight_idle.png" draggable="false">
+        <blocks>
+            
+        </blocks>
+        <button id="playButton"><span class="rotateText">Play</span></button>
+        <img src="knight_end.png" id="endImg" draggable="false">
+        <button id="homeButton"><span class="rotateText">Home</span></button>
+        <h1 id="timePlayed">00:00:00.000</h1>
+        <script>
+            //0
+            var blank = "BlankTile.png";
+            //1
+            var grass = "GrassSquare.png";
+            //2
+            var grassPlat = "grassPlatform.png";
+            //3
+            var dirt = "dirtSquare.png";
+            //4
+            var grassLeft = "GrassLeft.png"; /*On the left of platform*/
+            //5
+            var grassRight = "GrassRight.png"; /*On the right of platform*/
+            //6
+            var keyImg = "key.png";
+            //7
+            var doorImg = "door.png";
+            //8
+            var flagImg = "flag.png";
+
+            var currentMap;
+            var grid = false;
+            var blocks = [];
+            var blockTags = [];
+
+            var clouds = [];
+            var cloudTags = [];
+            var cloudImg = "knight_cloud.png";
+
+            var knightX = 820;
+            var knightY = 0;
+            var xVelocity = 0;
+            var yVelocity = 0;
+            var contact;
+            var keys = [];
+            //r, c, key #
+            var doors = [
+                [20, 56, 1],
+                [21, 56, 1],
+                [10, 26, 2],
+                [20, 33, 2],
+                [17, 33, 2],
+                [54, 4, 3],
+                [56, 7, 3],
+                [54, 41, 3]
+            ];
+
+            var keysPressed = [];
+
+            var knightJump = "knight_jump.png";
+            var knightJumpL = "knight_jumpL.png";
+            var knight_idle = "knight_idle.png";
+            var knight_idleL = "knight_idleL.png";
+            var knight_walk1 = "knight_walk1.png";
+            var knight_walk1L = "knight_walk1L.png";
+            
+            var knight = document.getElementById("knight");
+            var prevFrame = knight_idle;
+            var animCount = 0;
+            var reduceLag = false;
+            var gameState = "HOME";
+            var homeCount = 0;
+            var startTime = Date.now();
+            var finishTime;
+            var blocksScreen = document.getElementsByTagName("blocks")[0];
+            
+            var endImg = document.getElementById("endImg");
+            var homeButton = document.getElementById("homeButton");
+            var playButton = document.getElementById("playButton");
+            var playTime = document.getElementById("timePlayed");
+            
+            var map1 = [
+                [1,1,1,1,1,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,1,1,1,1,5,0,0,0,2,0,6],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,1,1,5,0,0,0,0,4,1,1,1,1,1,1,1,5,0,0,4,1,3,3,3,3,3,3,3,3,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,3,3,3,1,1,1,1,3,3,3,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0,0,2,0,0,0,2,0,0,0,2],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,4,5,0,0,0,2,0,0,0,2,0,0,0,4,1,1,1,1,1,1,1,1,5,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,2,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,3,3,0,0,0,0,0,0,0,0,0,0,4,3,3,3,3,3,3,3,3,3,3,0,3,3],
+                [3,3,3,3,3,3,3,3,0,0,3,3,1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3],
+                [3,3,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,7,3,3],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,1,1,1,1,1,1],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,4,5,0,2,0,2,0,4,1,1,1,1,1,5,7,4,1,1,1,1,1,1,1,1,1,1,1,1,1,5,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,2,0,0,3,3,0,0,0,0,0,3,3,3,3,3,3,3,0,3,3,3,3,3,3,0,0,0,0,3,3,3,3,3,1,5,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,0,0,0,0,0,2,0,0,0,0,0,3,3,0,0,0,0,0,3,3,3,3,3,3,3,0,3,3,3,3,0,0,0,0,0,0,0,0,3,3,3,3,3,1,5,0,0,0,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,1,1,5,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,3,3,3,3,3,3,3,0,3,3,0,0,0,0,2,0,2,2,0,0,0,0,3,3,3,3,3,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,0,3,3,0,0,0,2,0,0,0,0,0,0,6,0,3,3,3,3,3,5,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,3,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,0,3,3,0,2,0,0,0,0,0,0,2,0,2,0,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,0,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,0,2,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,0,3,3,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [4,1,5,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,2,2,2,2,0,0,4,1,1,1,1,1,5,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,4,5,0,0,0,4,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,0,0,0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,0,4,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,0,0,4,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,1,1,3,3,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,2,0,2,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,2,0,2,2,0,0,0,0,0,3,5,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,0,2,0,0,0,4,5,0,0,0,0,0,0,0,2,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,5,7,4,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,7,0,6,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,3,3,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,1,1,1,1,1,1,5,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3],
+                [0,0,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3],
+                [0,0,0],
+                [0,0,0],
+                [0,0,0],
+                [0,0,4,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,1,1,1,1,1,1,5],
+                [2,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3],
+                [0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,3,3,3,3,3,3,3,3,3,3],
+                [4,1,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,0,2,0,2,0,2,0,2,0,2,0,4,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3] 
+            ];
+            var gameLoop = setInterval(update, 20);
+            function update(){
+                if(gameState == "PLAY"){
+                    knight.style.display = "block";
+                    endImg.style.display = "none";
+                    homeButton.style.display = "none";
+                    playTime.style.display = "none";
+                    if(keysPressed.includes(39) && keysPressed.includes(37)){
+                        xVelocity = 0;
+                        if(prevFrame == knight_walk1){
+                            knight.src = knight_idle;
+                            prevFrame = knight_idle;
+                            animCount = 0;
+                        }
+                        if(prevFrame == knight_walk1L){
+                            knight.src = knight_idleL;
+                            prevFrame = knight_idleL;
+                            animCount = 0;
+                        }
+                    }else if(keysPressed.includes(39)){
+                        xVelocity = 4;
+                        if(animCount >= 10){
+                            if(prevFrame != knight_walk1){
+                                knight.src = knight_walk1;
+                                prevFrame = knight_walk1;
+                                animCount = 0;
+                            }else{
+                                knight.src = knight_idle;
+                                prevFrame = knight_idle;
+                                animCount = 0;
+                            }
+                        }
+                    }else if(keysPressed.includes(37)){
+                        xVelocity = -4;
+                        if(animCount >= 10){
+                            if(prevFrame != knight_walk1L){
+                                knight.src = knight_walk1L;
+                                prevFrame = knight_walk1L;
+                                animCount = 0;
+                            }else{
+                                knight.src = knight_idleL;
+                                prevFrame = knight_idleL;
+                                animCount = 0;
+                            }
+                        }
+                    }else{
+                        xVelocity = 0;
+                        if(prevFrame == knight_walk1 && animCount >= 5){
+                            knight.src = knight_idle;
+                            prevFrame = knight_idle;
+                            animCount = 0;
+                        }
+                        if(prevFrame == knight_walk1L && animCount >= 5){
+                            knight.src = knight_idleL;
+                            prevFrame = knight_idleL;
+                            animCount = 0;
+                        }
+                    }
+                    
+                    animCount += 1;
+                    
+                    //movement
+                    knightX += xVelocity;
+                    contact = isTouching();
+                    if(contact[0] != 0){
+                        while(isTouching()[0] != 0){
+                            knightX -= Math.sign(xVelocity);
+                        }
+                    }
+                    
+                    knightY += yVelocity;
+                    contact = isTouching();
+                    if(contact[0] != 0 && contact[0] != 6){
+                        while(isTouching()[0] != 0){
+                            knightY -= Math.sign(yVelocity);
+                        }
+                        
+                        if(contact != 2){
+                            knightY = Math.round(knightY / 100) * 100;
+                        }else{
+                            knightY = Math.round(knightY / 25) * 25;
+                        }
+                            
+                        if(contact[1] == "BELOW" && contact[0] == 2){
+                            knightY += 40;
+                        }
+                        knightY += Math.sign(yVelocity) * (100 / 32);
+                        yVelocity = 0;
+                        if((keysPressed.includes(38) || keysPressed.includes(32)) && contact[1] == "ABOVE"){
+                            yVelocity = -12;
+                            if(prevFrame == knight_walk1 || prevFrame == knight_idle){
+                                knight.src = knightJump;
+                                prevFrame = knight_walk1;
+                            }else{
+                                knight.src = knightJumpL;
+                                prevFrame = knight_walk1L;
+                            }
+                            animCount = 0;
+                        }
+                    }else{
+                        yVelocity += 0.3;
+                    }
+                    if(knightY > 9000){
+                        knightY = 7200;
+                        knightX = 320;
+                    }
+                    knight.style.top = (screen.height / 2) - 150 + "px";
+                    knight.style.left = (screen.width / 2) - 50 + "px";
+                    for(var i = 0;i < blocks.length;i++){
+                        blockTags[i].style.top = (blocks[i][0] + (screen.height / 2)) - knightY - 150 + "px";
+                        if(blocks[i][2] == 4){
+                            blockTags[i].style.left = (blocks[i][1] + (screen.width / 2)) - knightX - 59 + "px";
+                        }else if(blocks[i][2] == 7){
+                            blockTags[i].style.left = (blocks[i][1] + (screen.width / 2)) - knightX - 50 + "px";
+                        }else{
+                            blockTags[i].style.left = (blocks[i][1] + (screen.width / 2)) - knightX - 50 + "px";
+                        }
+                    }
+                    if(!reduceLag){
+                        for(var i = 0;i < clouds.length;i++){
+                            //alert(clouds[i][2]);
+                            cloudTags[i].style.top = clouds[i][0] - (knightY / (6 - clouds[i][2])) + "px";
+                            cloudTags[i].style.left = clouds[i][1] - (knightX / (6 - clouds[i][2])) + "px";
+                            cloudTags[i].style.width = (clouds[i][2] * 100) + "px";
+                        }
+                    }else{
+                        clouds = [];
+                        cloudTags = [];
+                        document.getElementsByTagName("clouds")[0].innerHTML = " ";
+                    }
+                }else if(gameState == "HOME"){
+                    endImg.style.display = "none";
+                    knight.style.left = (screen.width / 2) - 50 + "px";
+                    knight.style.top = "404px";
+                    homeButton.style.display = "none";
+                    playTime.style.display = "none";
+                    if(animCount >= 10){
+                        if(prevFrame == knight_walk1){
+                            knight.src = knight_idle;
+                            prevFrame = knight_idle;
+                            animCount = 0;
+                        }else{
+                            knight.src = knight_walk1;
+                            prevFrame = knight_walk1;
+                            animCount = 0;
+                        }
+                    }
+                    animCount += 1;
+                    homeCount += 1;
+                    if(blocks.length < 16){
+                        blocks.push([1500, 500]);
+                        blockTags.push([document.createElement("img"), document.createElement("img"), document.createElement("img")]);
+                        blocksScreen.appendChild(blockTags[blockTags.length - 1][0]);
+                        blocksScreen.appendChild(blockTags[blockTags.length - 1][1]);
+                        blocksScreen.appendChild(blockTags[blockTags.length - 1][2]);
+                        blockTags[blockTags.length - 1][0].classList.add("block");
+                        blockTags[blockTags.length - 1][1].classList.add("block");
+                        blockTags[blockTags.length - 1][2].classList.add("block");
+                        blockTags[blockTags.length - 1][0].src = grass;
+                        blockTags[blockTags.length - 1][1].src = dirt;
+                        blockTags[blockTags.length - 1][2].src = dirt;
+                        homeCount = 0;
+                    }
+                    for(var i = 0;i < blocks.length;i++){
+                        blocks[i][0] -= 4;
+                        blockTags[i][0].style.top = blocks[i][1] + "px";
+                        blockTags[i][0].style.left = blocks[i][0] + "px";
+                        blockTags[i][1].style.top = blocks[i][1] + 100 + "px";
+                        blockTags[i][1].style.left = blocks[i][0] + "px";
+                        blockTags[i][2].style.top = blocks[i][1] + 200 + "px";
+                        blockTags[i][2].style.left = blocks[i][0] + "px";
+                    }
+                    if(blocks[0][0] <= -100){
+                        blocks.shift();
+                        blockTags[0][0].remove();
+                        blockTags[0][1].remove();
+                        blockTags[0][2].remove();
+                        blockTags.shift();
+                    }
+                }else if(gameState == "END"){
+                    endImg.style.display = "block";
+                    knight.style.display = "none";
+                    playTime.style.display = "block";
+                    if(blocks.length < 200){
+                        blocks.push("a");
+                        blockTags.push(document.createElement("div"));
+                        blockTags[blockTags.length - 1].classList.add("confetti");
+                        blockTags[blockTags.length - 1].style.backgroundColor = "rgb(" + (Math.random() * 250) + " " + (Math.random() * 250) + " " + (Math.random() * 250) + ")";
+                        blockTags[blockTags.length - 1].style.transform = "rotate(" + Math.random() * 360 + "deg)";
+                        blockTags[blockTags.length - 1].style.top = Math.random() * 600 + "px";
+                        blockTags[blockTags.length - 1].style.left = Math.random() * 1366 + "px";
+                        blocksScreen.appendChild(blockTags[blockTags.length - 1]);
+                    }else{
+                        homeButton.style.display = "block";
+                    }
+                }
+            }
+            
+            setHomeScreen();
+            function setHomeScreen(){
+                for(var b = 0;b < 15;b++){
+                    blocks.push([b * 100, 500]);
+                    blockTags.push([document.createElement("img"), document.createElement("img"), document.createElement("img")]);
+                    blocksScreen.appendChild(blockTags[blockTags.length - 1][0]);
+                    blocksScreen.appendChild(blockTags[blockTags.length - 1][1]);
+                    blocksScreen.appendChild(blockTags[blockTags.length - 1][2]);
+                    blockTags[blockTags.length - 1][0].classList.add("block");
+                    blockTags[blockTags.length - 1][1].classList.add("block");
+                    blockTags[blockTags.length - 1][2].classList.add("block");
+                    blockTags[blockTags.length - 1][0].src = grass;
+                    blockTags[blockTags.length - 1][1].src = dirt;
+                    blockTags[blockTags.length - 1][2].src = dirt;
+                }
+            }
+            
+            function isTouching(){
+                var knightLeft = (knightX + (9 * (100 / 32)));
+                var knightRight = (knightX + (24 * (100 / 32)));
+                var knightUp = (knightY + (7 * (100 / 32)));
+                var knightDown = knightY + 100;
+                var boxRight;
+                var boxLeft;
+                var boxUp;
+                var boxDown;
+                for(var i = 0;i < blocks.length;i++){
+                    if(blocks[i][2] != 0){
+                        boxRight = blocks[i][1] + 100;
+                        boxLeft = blocks[i][1];
+                        boxUp = blocks[i][0] + (1 * (100 / 32));
+                        boxDown = blocks[i][0] + 100;
+                        if(blocks[i][2] == 2){
+                            boxDown = blocks[i][0] + 55;
+                            boxRight -= 2 * (100 / 32);
+                            boxLeft += 2 * (100 / 32);
+                        }else if(blocks[i][2] == 6){
+                            boxDown = blocks[i][0] + 66;
+                            boxRight = blocks[i][1] + 80;
+                            boxLeft = blocks[i][1] + 20;
+                            boxUp = blocks[i][0] + 33;
+                        }else if(blocks[i][2] == 8){
+                            boxLeft = blocks[i][1] + 20;
+                            boxRight = blocks[i][1] + 60;
+                        }
+                        if( ((knightRight > boxLeft) && (knightLeft < boxRight)) && ((knightDown > boxUp) && (knightUp < boxDown)) ){
+                            if(blocks[i][2] == 8){
+                                gameState = "END";
+                                finishTime = Date.now() - startTime;
+                                var hours = Math.floor(finishTime / 3600000);
+                                finishTime -= hours * 3600000;
+                                if(hours.toString().length < 2){
+                                    hours = "0" + hours;
+                                }
+                                var minutes = Math.floor(finishTime / 60000);
+                                finishTime -= minutes * 60000;
+                                if(minutes.toString().length < 2){
+                                    minutes = "0" + minutes;
+                                }
+                                var seconds = Math.floor(finishTime / 1000);
+                                finishTime -= seconds * 1000;
+                                if(seconds.toString().length < 2){
+                                    seconds = "0" + seconds;
+                                }
+                                if(finishTime.toString().length < 3){
+                                    finishTime = "0" + finishTime;
+                                }
+                                if(finishTime.toString().length < 3){
+                                    finishTime = "0" + finishTime;
+                                }
+                                playTime.textContent = hours + ":" + minutes + ":" + seconds + "." + finishTime;
+                                blocksScreen.innerHTML = " ";
+                                blocks = [];
+                                blockTags = [];
+                            }else if(blocks[i][2] == 6){
+                                keys.push("a");
+                                blocks[i][2] = 0;
+                                for(var d = 0;d < doors.length;d++){
+                                    if(keys.length >= (doors[d][2])){
+                                        currentMap[doors[d][0]][doors[d][1]] = 0;
+                                        for(var b = 0;b < blocks.length;b++){
+                                            if( ((blocks[b][0] / 100) == doors[d][0]) && ((blocks[b][1] / 100) == doors[d][1]) ){
+                                                blocks[b][2] = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                                currentMap[(blocks[i][0] / 100)][(blocks[i][1] / 100)] = 0;
+                                setMap(currentMap);
+                                xVelocity = 0;
+                            }else{
+                                return [blocks[i][2], (knightUp < boxUp ? "ABOVE" : "BELOW")];
+                            }
+                        }
+                    }
+                }
+                return [0, "ABOVE"];
+            };
+            
+            function setMap(map){
+                blocks = [];
+                blockTags = [];
+                blocksScreen.innerHTML = " ";
+                currentMap = map;
+                var newBlock;
+                for(var r = 0;r < map.length;r++){
+                    for(var c = 0;c < map[r].length;c++){
+                        newBlock = document.createElement("img");
+                        newBlock.style.zIndex = 999;
+                        newBlock.style.top = (r * 100) + knightY + "px";
+                        newBlock.style.left = (c * 100 + (knightX - 820) + "px");
+                        //y, x, image #
+                        blocks.push([(r * 100), (c * 100), map[r][c]]);
+                        switch(map[r][c]){
+                            case 1:
+                                newBlock.src = grass;
+                                break;
+                            case 2:
+                                newBlock.src = grassPlat;
+                                break;
+                            case 3:
+                                newBlock.src = dirt;
+                                if(reduceLag){
+                                    try{
+                                        if(map[r - 1][c] == 3 && map[r -1][c - 1] == 3 && map[r][c - 1] == 3 && map[r + 1][c] == 3 && map[r + 1][c + 1] == 3 && map[r][c + 1] == 3 && map[r - 1][c + 1] == 3 && map[r + 1][c - 1] == 3){
+                                            newBlock.classList.add("invis");
+                                            newBlock.src = blank;
+                                        }
+                                    }catch(err){}
+                                }
+                                break;
+                            case 4:
+                                newBlock.src = grassLeft;
+                                newBlock.style.left = ((c * 100) - 9) + "px";
+                                blocks[blocks.length - 1] = [(r * 100), (c * 100), 4];
+                                break;
+                            case 5:
+                                newBlock.src = grassRight;
+                                break;
+                            case 6:
+                                newBlock.src = keyImg;
+                                break;
+                            case 7:
+                                newBlock.src = doorImg;
+                                newBlock.classList.add("door");
+                                break;
+                            case 8:
+                                newBlock.src = flagImg;
+                                break;
+                            default:
+                                newBlock.src = blank;
+                                newBlock.classList.add("invis");
+                                break;
+                        }
+                        newBlock.classList.add("block");
+                        if(grid){
+                            newBlock.style.border = "1px solid black";
+                        }
+                        if(map[r][c] != 0){
+                            blocksScreen.appendChild(newBlock);
+                            blockTags.push(newBlock);
+                        }else{
+                            blocks.pop();
+                        }
+
+                    }
+                }
+            };
+
+            playButton.addEventListener("click", function(){
+                gameState = "PLAY";
+                prevFrame = knight_idle;
+                animCount = 0;
+                knightX = 820;
+                knightY = 0;
+                xVelocity = 0;
+                yVelocity = 0;
+                keys = [];
+                blocks = [];
+                blockTags = [];
+                playButton.style.display = "none";
+                blocksScreen.innerHTML = " ";
+                setMap(map1);
+                for(var c = 0;c < 200;c++){
+                    var newCloud = document.createElement("img");
+                    cloudTags.push(newCloud);
+                    clouds.push([Math.random() * 8400, Math.random() * 5000, Math.random() * 4]);
+                    if(clouds[clouds.length - 1][2] < 0.75){
+                        cloudTags.pop();
+                        clouds.pop();
+                    }else{
+                        newCloud.style.top = clouds[clouds.length - 1][0] + "px";
+                        newCloud.style.left = clouds[clouds.length - 1][1] + "px";
+                        newCloud.style.width = (clouds[clouds.length - 1][2] * 100) + "px";
+                        newCloud.classList.add("cloud");
+                        newCloud.style.zIndex = Math.floor(clouds[clouds.length - 1][2] * 100);
+                        newCloud.src = cloudImg;
+                        document.getElementsByTagName("clouds")[0].appendChild(newCloud);
+                    }
+                }
+            });
+
+            homeButton.addEventListener("click", function(){
+                gameState = "HOME";
+                blocks = [];
+                blockTags = [];
+                blocksScreen.innerHTML = " ";
+                knight.style.display = "block";
+                playButton.style.display = "block";
+                animCount = 0;
+                reduceLag = false;
+                homeCount = 0;
+                knightX = 820;
+                knightY = 0;
+                xVelocity = 0;
+                yVelocity = 0;
+                contact;
+                keys = [];
+                startTime = Date.now();
+                setHomeScreen();
+            });
+            
+            document.onkeydown = function(e){
+                if(e.keyCode == 88){
+                    reduceLag = !reduceLag;
+                    if(!reduceLag){
+                        for(var c = 0;c < 200;c++){
+                            var newCloud = document.createElement("img");
+                            cloudTags.push(newCloud);
+                            clouds.push([Math.random() * 8400, Math.random() * 5000, Math.random() * 4]);
+                            if(clouds[clouds.length - 1][2] < 0.75){
+                                cloudTags.pop();
+                                clouds.pop();
+                            }else{
+                                newCloud.style.top = clouds[clouds.length - 1][0] + "px";
+                                newCloud.style.left = clouds[clouds.length - 1][1] + "px";
+                                newCloud.style.width = (clouds[clouds.length - 1][2] * 100) + "px";
+                                newCloud.classList.add("cloud");
+                                newCloud.style.zIndex = Math.floor(clouds[clouds.length - 1][2] * 100);
+                                newCloud.src = cloudImg;
+                                document.getElementsByTagName("clouds")[0].appendChild(newCloud);
+                            }
+                        }
+                    }
+                    setMap(currentMap);
+                }
+                keysPressed.push(e.keyCode);
+            };
+            
+            document.onkeyup = function(e){
+                keysPressed = keysPressed.filter((code) => code != e.keyCode);
+            };
+        </script>
+    </body>
+</html>
