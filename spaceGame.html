@@ -4,7 +4,6 @@
         <!-- Written by Cookie Code -->
         <meta charset="utf-8">
         <title>Spaceship!</title>
-        <link rel="icon" type="image/x-icon" href="favicon.ico">
         <style>
             body {
                 background-color:black;
@@ -65,7 +64,7 @@
     </head>
     <body>
         <p id="score"></p>
-        <img id="spaceship" src="https://github.com/weszaron/cookieCode/blob/main/spaceship.png?raw=true">
+        <img id="spaceship" src="https://github.com/weszaron/cookieCode/blob/main/space_ship.png?raw=true">
         <br><br><button id="clickMe">Click to Start</button>
         <br><a href="https://sites.google.com/view/cookiecode" id="homelink">Home</a>
 
@@ -96,7 +95,7 @@
 
             var obstacles = [];
             var obstacleTags = [];
-            var obstacleImgs = ["https://github.com/weszaron/cookieCode/blob/main/satellite1.png?raw=true", "https://github.com/weszaron/cookieCode/blob/main/ufo1.png?raw=true", "https://github.com/weszaron/cookieCode/blob/main/satellite2.png?raw=true", "https://github.com/weszaron/cookieCode/blob/main/rock1.png?raw=true"];
+            var obstacleImgs = ["https://github.com/weszaron/cookieCode/blob/main/space_satellite1.png?raw=true", "https://github.com/weszaron/cookieCode/blob/main/space_ufo1.png?raw=true", "https://github.com/weszaron/cookieCode/blob/main/space_satellite2.png?raw=true", "https://github.com/weszaron/cookieCode/blob/main/space_rock.png?raw=true"];
             var topCountdown = 2000;
             var countDown = 2000;
             var prevDate = Date.now();
@@ -111,7 +110,7 @@
             var highScore = 0;
             function update(){
                 if(gameOver == "play"){
-                    ship.src = "https://github.com/weszaron/cookieCode/blob/main/spaceship.png?raw=true";
+                    ship.src = "https://github.com/weszaron/cookieCode/blob/main/space_ship.png?raw=true";
                     ship.style.display = "inline";
                     clickMe.style.display = "none";
                     document.getElementById("homelink").style.display = "none";
@@ -323,7 +322,7 @@
                     prevDate = Date.now();
                     document.getElementById("homelink").style.display = "block";
                     document.getElementById("score").innerHTML = "<mark>" + highScore + "</mark><br>Highest Score";
-                    ship.src="https://github.com/weszaron/cookieCode/blob/main/spaceship.png?raw=true";
+                    ship.src="https://github.com/weszaron/cookieCode/blob/main/space_ship2.png?raw=true";
                 }
             };
 
@@ -438,7 +437,7 @@
                     if(countDown >= -8000){
                         shipRot = shipRot + Math.round((Math.random() - 0.5) * 2) * 2;
                     }else{
-                        ship.src = "https://github.com/weszaron/cookieCode/blob/main/spaceship2.png?raw=true";
+                        ship.src = "https://github.com/weszaron/cookieCode/blob/main/space_ship2.png?raw=true";
                         flames = [];
                         for(var i = 0;i < flameTags.length;i++){
                             flameTags[i].remove();
